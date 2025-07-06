@@ -8,8 +8,10 @@ A simple OrdersAPI that can subscibe to the state of the equipment
 And a OPCUA server that can affect the state of the equipment
 
 ## Running the APIs
+In the root of the project run 
+```
 docker compose up --build
-
+```
 This will start 
 2xHMI exposed at http://localhost:5001, and http://localhost:5002,
 a OrdersAPI exposed at http://localhost:5003/,
