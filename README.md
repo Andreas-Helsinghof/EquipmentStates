@@ -13,9 +13,9 @@ In the root of the project run
 docker compose up --build
 ```
 This will start 
-2xHMI exposed at http://localhost:5001, and http://localhost:5002,
-a OrdersAPI exposed at http://localhost:5003/,
-and a OPCUA Server at opc.tcp://0.0.0.0:4840/freeopcua/server
+- 2xHMI exposed at http://localhost:5001, and http://localhost:5002,
+- a OrdersAPI exposed at http://localhost:5003/,
+- a OPCUA Server at opc.tcp://0.0.0.0:4840/freeopcua/server
 
 Both the HMI and OrdersAPI exposes a swagger at /swagger/index.html
 Furthermore a incomplete "HMI" can also be accessed at http://localhost:5001/equipment-state
