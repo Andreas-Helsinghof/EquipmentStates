@@ -1,0 +1,109 @@
+@page "/equipment-state"
+@using EquipmentStates.HMI.Api.Models
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@using Microsoft.AspNetCore.SignalR.Client
+
+<h3>Equipment State Monitor</h3>
+
+<div style="margin-bottom: 1em;">
+    <span style="font-weight: bold;">Order ID:</span>
+    <span>@(_equipmentState?.OrderId ?? "N/A")</span>
+</div>
+
+<div style="margin-bottom: 1em;">
+    <span style="font-weight: bold;">Current State:</span>
+    <span style="padding: 0.5em 1em; color: white; border-radius: 0.5em; background-color: @GetStateColor(_equipmentState?.State)">
+        @(_equipmentState?.State)
+    </span>
+</div>
+
+<EditForm Model="_editModel" OnValidSubmit="ChangeState">
+    <div style="margin-bottom: 1em;">
+        <label>Order ID: </label>
+        <InputText @bind-Value="_editModel.OrderId" />
+    </div>
+    <div style="margin-bottom: 1em;">
+        <label>State: </label>
+        <InputSelect @bind-Value="_editModel.State">
+            <option value="Red">Red</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Green">Green</option>
+        </InputSelect>
+    </div>
+    <button type="submit">Change State</button>
+</EditForm>
+
+@code {
+    private EquipmentStatus? _equipmentState;
+    private EquipmentStatus _editModel = new EquipmentStatus { State = EquipmentProductionState.Red, OrderId = "" };
+    private HubConnection? _hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadState();
+        await SetupSignalR();
+    }
+
+    private async Task LoadState()
+    {
+        try
+        {
+            _equipmentState = await Http.GetFromJsonAsync<EquipmentStatus>("api/EquipmentState");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        if (_equipmentState != null)
+        {
+            _editModel.State = _equipmentState.State;
+            _editModel.OrderId = _equipmentState.OrderId;
+        }
+    }
+
+    private async Task SetupSignalR()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/hubs/equipmentstate"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hubConnection.On<EquipmentStatus>("StateChanged", (state) =>
+        {
+            InvokeAsync(() =>
+            {
+                _equipmentState = new EquipmentStatus
+                {
+                    State = state.State,
+                    OrderId = state.OrderId
+                };
+                StateHasChanged();
+            });
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    private async Task ChangeState()
+    {
+        await Http.PostAsJsonAsync("api/EquipmentState", _editModel);
+    }
+
+    private string GetStateColor(EquipmentProductionState? state)
+    {
+        return state switch
+        {
+            EquipmentProductionState.Red => "#d32f2f",
+            EquipmentProductionState.Yellow => "#fbc02d",
+            EquipmentProductionState.Green => "#388e3c",
+            _ => "#757575"
+        };
+    }
+
+    public void Dispose()
+    {
+        _ = _hubConnection?.DisposeAsync();
+    }
+}
