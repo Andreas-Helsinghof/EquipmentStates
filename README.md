@@ -54,6 +54,10 @@ curl -X 'POST' \
 }'
 ```
 
+## Overarching Architecture
+![image](https://github.com/user-attachments/assets/c79e5e62-a6af-498b-9029-f60db4f98b64)
+
+
 ## Future work
 To conclude the DEMO future work could be worked upon:
 - Make the HMI instantly react to state changes in the frontend
